@@ -160,6 +160,9 @@ $browser_stats = $stmt->fetchAll();
             <div class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div id="welcome-sofy" style="font-size:1.5rem;font-weight:bold;color:#007bff;margin-bottom:10px;"></div>
+                        </div>
                         <div class="col-sm-6">
                             <h1 class="m-0">Dashboard</h1>
                         </div>
@@ -983,6 +986,21 @@ $browser_stats = $stmt->fetchAll();
             playNotificationSound();
         }
     }, 30000);
+
+    // Welcome message for SOFY NUR KHOLIFAH
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.Typed) {
+            new Typed('#welcome-sofy', {
+                strings: ['Welcome <b>SOFY NUR KHOLIFAH</b>!'],
+                typeSpeed: 60,
+                backSpeed: 30,
+                showCursor: false,
+                smartBackspace: false
+            });
+        } else {
+            document.getElementById('welcome-sofy').innerHTML = 'Welcome <b>SOFY NUR KHOLIFAH</b>!';
+        }
+    });
     </script>
 </body>
 </html> 
