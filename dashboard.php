@@ -65,6 +65,18 @@ $stmt = $pdo->query("SELECT
                      FROM visitors 
                      GROUP BY browser");
 $browser_stats = $stmt->fetchAll();
+
+// Kalender aktivitas: simpan aktivitas di session
+if (!isset($_SESSION['activities'])) {
+    $_SESSION['activities'] = [];
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['activity_date'], $_POST['activity_note'])) {
+    $date = $_POST['activity_date'];
+    $note = trim($_POST['activity_note']);
+    if ($date && $note) {
+        $_SESSION['activities'][$date][] = $note;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,42 +90,71 @@ $browser_stats = $stmt->fetchAll();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Flatpickr Calendar -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body {
-            background: #ffe4ec !important; /* Pink pastel */
+            background: #f8bbd0 !important; /* Pink pastel lebih gelap */
         }
         .main-sidebar, .main-sidebar.sidebar-dark-primary {
-            background-color: #f8bbd0 !important; /* Pink pastel sidebar */
+            background-color: #f06292 !important; /* Sidebar pink lebih gelap */
         }
         .content-wrapper, .content-header, .content {
-            background: #ffe4ec !important; /* Pink pastel content */
+            background: #f8bbd0 !important; /* Pink pastel lebih gelap */
         }
         .card, .small-box, .info-box {
-            background: #fff0f6 !important; /* Lighter pink pastel for cards */
+            background: #fff !important; /* Card putih */
             border-radius: 12px !important;
             border: none !important;
             box-shadow: 0 2px 8px rgba(248,187,208,0.15);
         }
+        .small-box.bg-info, .card.bg-info {
+            background: #64b5f6 !important; /* Blue pastel */
+            color: #1a237e !important;
+        }
+        .small-box.bg-info .icon, .card.bg-info .icon {
+            color: #1976d2 !important;
+        }
         .sidebar .nav-link.active, .sidebar .nav-link:hover {
-            background: #f8bbd0 !important;
-            color: #ad1457 !important;
+            background: #fce4ec !important;
+            color: #1976d2 !important;
+        }
+        .sidebar .nav-link.active i, .sidebar .nav-link:hover i {
+            color: #1976d2 !important;
         }
         .sidebar .nav-link, .sidebar .nav-link i {
             color: #ad1457 !important;
         }
         .brand-link {
-            background: #f8bbd0 !important;
-            color: #ad1457 !important;
+            background: #f06292 !important;
+            color: #fff !important;
         }
         .main-footer {
-            background: #f8bbd0 !important;
-            color: #ad1457 !important;
+            background: #f06292 !important;
+            color: #fff !important;
         }
         h1, h2, h3, h4, h5, h6, .info-box-text, .info-box-number, .card-title, .brand-text {
             color: #ad1457 !important;
         }
         .small-box-footer, .uppercase, .btn, a {
-            color: #ad1457 !important;
+            color: #1976d2 !important;
+        }
+        .btn-primary, .btn-info {
+            background: #1976d2 !important;
+            border-color: #1976d2 !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-info:hover {
+            background: #1565c0 !important;
+            border-color: #1565c0 !important;
+        }
+        /* Perjelas warna teks di card dan error */
+        .card, .small-box, .info-box, .card-body, .info-box-content, .small-box .inner {
+            color: #333 !important;
+        }
+        .alert, .alert-danger, .error, .swal2-popup, .swal2-title, .swal2-content {
+            color: #b71c1c !important;
+            background: #fff !important;
         }
     </style>
 </head>
@@ -212,80 +253,98 @@ $browser_stats = $stmt->fetchAll();
             <!-- Main content -->
             <div class="content">
                 <div class="container-fluid">
-                    <div class="row">
-                        <!-- Posts Card -->
-                        <div class="col-lg-3 col-6">
-                            <div class="small-box bg-info">
-                                <div class="inner">
-                                    <?php
-                                    $stmt = $pdo->query("SELECT COUNT(*) FROM posts");
-                                    $postCount = $stmt->fetchColumn();
-                                    ?>
-                                    <h3><?php echo $postCount; ?></h3>
-                                    <p>Total Posts</p>
+                    <div class="container-fluid mt-4">
+                        <!-- Welcome Box -->
+                        <div class="row justify-content-center mb-4">
+                            <div class="col-lg-10">
+                                <div style="background:#fff;border-radius:18px;box-shadow:0 2px 16px rgba(0,0,0,0.07);padding:2.5rem 1rem;text-align:center;">
+                                    <h1 style="font-size:2.5rem;font-weight:800;color:#333;margin-bottom:0.5rem;">Selamat Datang, SOFY NUR KHOLIFAH!</h1>
+                                    <div style="font-size:1.2rem;color:#888;">Selamat datang di Dashboard CMS Sederhana</div>
                                 </div>
-                                <div class="icon">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <a href="pages/posts.php" class="small-box-footer">
-                                    More info <i class="fas fa-arrow-circle-right"></i>
-                                </a>
                             </div>
                         </div>
-
-                        <!-- Categories Card -->
-                        <div class="col-lg-3 col-6">
-                            <div class="small-box bg-success">
-                                <div class="inner">
-                                    <?php
-                                    $stmt = $pdo->query("SELECT COUNT(*) FROM categories");
-                                    $categoryCount = $stmt->fetchColumn();
-                                    ?>
-                                    <h3><?php echo $categoryCount; ?></h3>
-                                    <p>Categories</p>
+                        <!-- Statistik Cards -->
+                        <div class="row justify-content-center mb-4">
+                            <div class="col-md-3 mb-3">
+                                <div style="background:#1976d2;color:#fff;border-radius:16px;padding:2rem 1rem;text-align:center;box-shadow:0 2px 8px rgba(25,118,210,0.08);">
+                                    <div style="font-size:2.2rem;font-weight:700;"> <?php echo $postCount ?? 0; ?> </div>
+                                    <div style="font-size:1.1rem;">Total Posts</div>
+                                    <a href="pages/posts.php" class="btn btn-light mt-3" style="font-weight:600;color:#1976d2;">Lihat Posts</a>
                                 </div>
-                                <div class="icon">
-                                    <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div style="background:#e91e63;color:#fff;border-radius:16px;padding:2rem 1rem;text-align:center;box-shadow:0 2px 8px rgba(233,30,99,0.08);">
+                                    <div style="font-size:2.2rem;font-weight:700;"> <?php echo $categoryCount ?? 0; ?> </div>
+                                    <div style="font-size:1.1rem;">Total Categories</div>
+                                    <a href="pages/categories.php" class="btn btn-light mt-3" style="font-weight:600;color:#e91e63;">Lihat Categories</a>
                                 </div>
-                                <a href="pages/categories.php" class="small-box-footer">
-                                    More info <i class="fas fa-arrow-circle-right"></i>
-                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div style="background:#1976d2;color:#fff;border-radius:16px;padding:2rem 1rem;text-align:center;box-shadow:0 2px 8px rgba(25,118,210,0.08);">
+                                    <div style="font-size:2.2rem;font-weight:700;"> <?php echo $userCount ?? 0; ?> </div>
+                                    <div style="font-size:1.1rem;">Total Users</div>
+                                    <a href="pages/users.php" class="btn btn-light mt-3" style="font-weight:600;color:#1976d2;">Lihat Users</a>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div style="background:#e91e63;color:#fff;border-radius:16px;padding:2rem 1rem;text-align:center;box-shadow:0 2px 8px rgba(233,30,99,0.08);">
+                                    <div style="font-size:2.2rem;font-weight:700;">0</div>
+                                    <div style="font-size:1.1rem;">Total Comments</div>
+                                    <a href="#" class="btn btn-light mt-3" style="font-weight:600;color:#e91e63;">Lihat Comments</a>
+                                </div>
+                            </div>
+                            <!-- Card Total Pengunjung -->
+                            <div class="col-md-3 mb-3">
+                                <div style="background:#1976d2;color:#fff;border-radius:16px;padding:2rem 1rem;text-align:center;box-shadow:0 2px 8px rgba(25,118,210,0.08);">
+                                    <div style="font-size:2.2rem;font-weight:700;"> <?php echo isset($visitor_stats['total']) ? $visitor_stats['total'] : 0; ?> </div>
+                                    <div style="font-size:1.1rem;">Total Pengunjung</div>
+                                    <a href="pages/visitors.php" class="btn btn-light mt-3" style="font-weight:600;color:#1976d2;">Lihat Pengunjung</a>
+                                </div>
+                            </div>
+                            <!-- Card Statistik -->
+                            <div class="col-md-3 mb-3">
+                                <div style="background:#e91e63;color:#fff;border-radius:16px;padding:2rem 1rem;text-align:center;box-shadow:0 2px 8px rgba(233,30,99,0.08);">
+                                    <div style="font-size:2.2rem;font-weight:700;">Statistik</div>
+                                    <div style="font-size:1.1rem;">Statistik</div>
+                                    <a href="#" class="btn btn-light mt-3" style="font-weight:600;color:#e91e63;">Lihat Statistik</a>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- Users Card -->
-                        <div class="col-lg-3 col-6">
-                            <div class="small-box bg-warning">
-                                <div class="inner">
-                                    <?php
-                                    $stmt = $pdo->query("SELECT COUNT(*) FROM users");
-                                    $userCount = $stmt->fetchColumn();
-                                    ?>
-                                    <h3><?php echo $userCount; ?></h3>
-                                    <p>Users</p>
+                        <!-- Recent Posts Table -->
+                        <div class="row justify-content-center mb-4">
+                            <div class="col-lg-10">
+                                <div style="background:#fff;border-radius:18px;box-shadow:0 2px 16px rgba(0,0,0,0.07);padding:1.5rem 1rem;">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                                        <h5 style="font-weight:700;color:#333;">Recent Posts</h5>
+                                        <a href="pages/posts.php" class="btn btn-primary btn-sm" style="background:#1976d2;border:none;">View All</a>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0">
+                                            <thead style="background:#f5f5f5;">
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Category</th>
+                                                    <th>Author</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            <?php if (!empty($recent_posts)) : foreach ($recent_posts as $post) : ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($post['title']); ?></td>
+                                                    <td><?php echo htmlspecialchars($post['category_id'] ?? '-'); ?></td>
+                                                    <td><?php echo htmlspecialchars($user['username']); ?></td>
+                                                    <td><?php echo date('d/m/Y H:i', strtotime($post['created_at'])); ?></td>
+                                                    <td><span class="badge badge-success">Published</span></td>
+                                                </tr>
+                                            <?php endforeach; else: ?>
+                                                <tr><td colspan="5" class="text-center">No posts found.</td></tr>
+                                            <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                                <div class="icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <a href="pages/users.php" class="small-box-footer">
-                                    More info <i class="fas fa-arrow-circle-right"></i>
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- Today Visitors Card -->
-                        <div class="col-lg-3 col-6">
-                            <div class="small-box bg-danger">
-                                <div class="inner">
-                                    <h3><?php echo $visitor_stats['today']; ?></h3>
-                                    <p>Pengunjung Hari Ini</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <a href="#" class="small-box-footer">
-                                    More info <i class="fas fa-arrow-circle-right"></i>
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -512,6 +571,41 @@ $browser_stats = $stmt->fetchAll();
                             </div>
                         </div>
                     </div>
+
+                    <!-- Jam digital dan kalender aktivitas -->
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-2">
+                            <div style="background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(248,187,208,0.15);display:flex;align-items:center;">
+                                <i class="fas fa-clock" style="font-size:1.5rem;color:#1976d2;margin-right:10px;"></i>
+                                <span id="digital-clock" style="font-size:1.3rem;font-weight:bold;color:#ad1457;"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div style="background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(248,187,208,0.15);">
+                                <i class="fas fa-calendar-alt" style="font-size:1.5rem;color:#1976d2;margin-right:10px;"></i>
+                                <input type="text" id="activity-calendar" name="activity_date" class="form-control" style="display:inline-block;width:auto;border:none;font-weight:bold;color:#ad1457;background:transparent;box-shadow:none;" readonly>
+                                <form method="POST" class="mt-2" style="display:flex;gap:5px;">
+                                    <input type="hidden" id="activity-date-hidden" name="activity_date">
+                                    <input type="text" name="activity_note" class="form-control" placeholder="Catatan aktivitas..." required style="flex:1;">
+                                    <button type="submit" class="btn btn-primary">Tambah</button>
+                                </form>
+                                <div class="mt-2" id="activity-list">
+                                    <?php
+                                    $selectedDate = isset($_POST['activity_date']) ? $_POST['activity_date'] : date('Y-m-d');
+                                    if (!empty($_SESSION['activities'][$selectedDate])) {
+                                        echo '<ul style="padding-left:18px;">';
+                                        foreach ($_SESSION['activities'][$selectedDate] as $act) {
+                                            echo '<li style="color:#1976d2;font-weight:500;">'.htmlspecialchars($act).'</li>';
+                                        }
+                                        echo '</ul>';
+                                    } else {
+                                        echo '<span style="color:#aaa;">Belum ada aktivitas.</span>';
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -538,6 +632,8 @@ $browser_stats = $stmt->fetchAll();
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <!-- Typed.js -->
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <!-- Custom JavaScript -->
     <script>
@@ -1038,6 +1134,39 @@ $browser_stats = $stmt->fetchAll();
             });
         } else {
             document.getElementById('welcome-sofy').innerHTML = 'Welcome <b>SOFY NUR KHOLIFAH</b>!';
+        }
+    });
+
+    // Jam digital
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('digital-clock').textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Kalender aktivitas
+    flatpickr('#activity-calendar', {
+        inline: true,
+        locale: 'id',
+        defaultDate: '<?php echo isset($_POST['activity_date']) ? $_POST['activity_date'] : date('Y-m-d'); ?>',
+        showMonths: 1,
+        disableMobile: true,
+        onChange: function(selectedDates, dateStr) {
+            document.getElementById('activity-date-hidden').value = dateStr;
+            document.getElementById('activity-calendar').value = dateStr;
+            document.querySelector('form.mt-2').submit();
+        }
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set hidden input value saat load
+        var cal = document.getElementById('activity-calendar');
+        var hidden = document.getElementById('activity-date-hidden');
+        if (cal && hidden) {
+            hidden.value = cal.value;
         }
     });
     </script>
