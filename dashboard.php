@@ -78,6 +78,44 @@ $browser_stats = $stmt->fetchAll();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: #ffe4ec !important; /* Pink pastel */
+        }
+        .main-sidebar, .main-sidebar.sidebar-dark-primary {
+            background-color: #f8bbd0 !important; /* Pink pastel sidebar */
+        }
+        .content-wrapper, .content-header, .content {
+            background: #ffe4ec !important; /* Pink pastel content */
+        }
+        .card, .small-box, .info-box {
+            background: #fff0f6 !important; /* Lighter pink pastel for cards */
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(248,187,208,0.15);
+        }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover {
+            background: #f8bbd0 !important;
+            color: #ad1457 !important;
+        }
+        .sidebar .nav-link, .sidebar .nav-link i {
+            color: #ad1457 !important;
+        }
+        .brand-link {
+            background: #f8bbd0 !important;
+            color: #ad1457 !important;
+        }
+        .main-footer {
+            background: #f8bbd0 !important;
+            color: #ad1457 !important;
+        }
+        h1, h2, h3, h4, h5, h6, .info-box-text, .info-box-number, .card-title, .brand-text {
+            color: #ad1457 !important;
+        }
+        .small-box-footer, .uppercase, .btn, a {
+            color: #ad1457 !important;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -165,6 +203,7 @@ $browser_stats = $stmt->fetchAll();
                         </div>
                         <div class="col-sm-6">
                             <h1 class="m-0">Dashboard</h1>
+                            <p style="font-size:1.2rem;font-weight:bold;color:#007bff;margin-top:5px;">SOFY NUR KHOLIFAH</p>
                         </div>
                     </div>
                 </div>
