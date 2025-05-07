@@ -18,6 +18,16 @@ CREATE TABLE IF NOT EXISTS posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create visitors table
+CREATE TABLE IF NOT EXISTS visitors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL,
+    user_agent VARCHAR(255) NOT NULL,
+    page_visited VARCHAR(255) NOT NULL,
+    visit_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_visit_date (visit_date)
+);
+
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, password) VALUES 
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'); 
