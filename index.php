@@ -22,7 +22,6 @@ spl_autoload_register(function ($class) {
 
 // Load configuration
 require_once APP_PATH . '/config/config.php';
-require_once APP_PATH . '/config/database.php';
 
 // Initialize Router
 $router = new Core\Router();
@@ -66,11 +65,3 @@ $router->get('/categories/{id}', 'PublicController@categoryPosts');
 
 // Run the application
 $router->run();
-
-$controller = $_GET['c'] ?? 'home';
-$action = $_GET['a'] ?? 'index';
-
-require_once __DIR__ . '/controllers/' . ucfirst($controller) . 'Controller.php';
-$class = ucfirst($controller) . 'Controller';
-$obj = new $class();
-$obj->$action();

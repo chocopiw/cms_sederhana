@@ -1,13 +1,18 @@
 <?php
-namespace Core;
-
 class Controller
 {
-    protected function view($view, $data = [])
+    public function model($model)
+    {
+        require_once APP_PATH . '/models/' . $model . '.php';
+        return new $model;
+    }
+
+    public function view($view, $data = [])
     {
         // Extract data to variables
         extract($data);
         
+        // Path ke file view
         $viewFile = APP_PATH . '/views/' . $view . '.php';
         
         if (file_exists($viewFile)) {
@@ -16,21 +21,14 @@ class Controller
             $content = ob_get_clean();
             echo $content;
         } else {
-            throw new \Exception("View {$view} not found");
+            throw new \Exception("View {$view} not found: {$viewFile}");
         }
     }
 
     protected function redirect($url)
     {
-        header("Location: {$url}");
-        exit();
-    }
-
-    protected function json($data)
-    {
-        header('Content-Type: application/json');
-        echo json_encode($data);
-        exit();
+        header('Location: ' . $url);
+        exit;
     }
 
     protected function isLoggedIn()

@@ -225,6 +225,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>
         </form>
+        
+        <div class="register-link" style="text-align: center; margin-top: 1.5rem; color: #666;">
+            Belum punya akun? <a href="register.php" style="color: #007bff; text-decoration: none; font-weight: 600;">Daftar di sini</a>
+        </div>
     </div>
 
     <!-- Particles.js -->
