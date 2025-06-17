@@ -22,6 +22,7 @@ spl_autoload_register(function ($class) {
 
 // Load configuration
 require_once APP_PATH . '/config/config.php';
+require_once APP_PATH . '/config/database.php';
 
 // Initialize Router
 $router = new Core\Router();

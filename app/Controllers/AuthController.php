@@ -16,76 +16,60 @@ class AuthController extends Controller
     public function loginForm()
     {
         if ($this->isLoggedIn()) {
-            header('Location: /dashboard');
-            exit;
+            $this->redirect('/dashboard');
         }
         
-        $this->view('auth/login', ['title' => 'Login']);
+        $this->view('auth/login');
     }
 
     public function login()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /login');
-            exit;
-        }
+        $data = $this->getPostData();
         
-        $username = trim($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
+        $username = trim($data['username'] ?? '');
+        $password = $data['password'] ?? '';
         
         if (empty($username) || empty($password)) {
             $_SESSION['error'] = 'Username dan password harus diisi';
-            header('Location: /login');
-            exit;
+            $this->redirect('/login');
         }
         
         $user = $this->db->fetch(
-            "SELECT * FROM users WHERE username = ?",
-            [$username]
+            "SELECT * FROM users WHERE username = ? OR email = ?",
+            [$username, $username]
         );
         
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
             
             // Track visitor
             $this->trackVisitor();
             
-            header('Location: /dashboard');
-            exit;
+            $this->redirect('/dashboard');
         } else {
             $_SESSION['error'] = 'Username atau password salah';
-            header('Location: /login');
-            exit;
+            $this->redirect('/login');
         }
     }
 
     public function logout()
     {
         session_destroy();
-        header('Location: /login');
-        exit;
+        $this->redirect('/login');
     }
 
     private function trackVisitor()
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
-        $page = $_SERVER['REQUEST_URI'] ?? '/';
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        $page = $_SERVER['REQUEST_URI'];
         
-        try {
-            $this->db->insert('visitors', [
-                'ip_address' => $ip,
-                'user_agent' => $userAgent,
-                'page_visited' => $page
-            ]);
-        } catch (Exception $e) {
-            // Ignore visitor tracking errors
-        }
-    }
-
-    private function isLoggedIn()
-    {
-        return isset($_SESSION['user_id']);
+        $this->db->insert('visitors', [
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'page_visited' => $page
+        ]);
     }
 } 
