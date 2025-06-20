@@ -4,6 +4,8 @@
  * Run this script to create the database and tables
  */
 
+require_once __DIR__ . '/../Core/Controller.php';
+
 // Database configuration
 $host = 'localhost';
 $username = 'root';

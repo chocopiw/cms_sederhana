@@ -266,6 +266,49 @@
                         </div>
                     </div>
                 </div>
+                <!-- Recent Categories -->
+                <div class="row mt-4">
+                    <div class="col-lg-8">
+                        <div class="table-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-folder me-2"></i>Recent Categories
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($recentCategories)): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Slug</th>
+                                                    <th>Posts</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($recentCategories as $category): ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($category['name']); ?></td>
+                                                    <td><?php echo htmlspecialchars($category['slug']); ?></td>
+                                                    <td><?php echo $category['post_count']; ?></td>
+                                                    <td>
+                                                        <a href="/dashboard/categories/edit/<?php echo $category['id']; ?>" class="btn btn-primary btn-sm btn-action"><i class="fas fa-edit"></i></a>
+                                                        <a href="/dashboard/categories/delete/<?php echo $category['id']; ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Apakah Anda yakin ingin menghapus kategori ini?\nSemua artikel dalam kategori ini juga akan terhapus.');"><i class="fas fa-trash"></i></a>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="text-muted text-center">No categories found.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -34,6 +34,16 @@ class DashboardController extends Controller
              LIMIT 5"
         );
 
+        // Get recent categories
+        $recentCategories = $this->db->fetchAll(
+            "SELECT c.*, COUNT(p.id) as post_count 
+             FROM categories c 
+             LEFT JOIN posts p ON c.id = p.category_id 
+             GROUP BY c.id 
+             ORDER BY c.id DESC 
+             LIMIT 5"
+        );
+
         // Get visitor statistics
         $visitorStats = $this->getVisitorStats();
 
@@ -46,7 +56,8 @@ class DashboardController extends Controller
             'stats' => $stats,
             'recentPosts' => $recentPosts,
             'visitorStats' => $visitorStats,
-            'recentVisitors' => $recentVisitors
+            'recentVisitors' => $recentVisitors,
+            'recentCategories' => $recentCategories
         ]);
     }
 
